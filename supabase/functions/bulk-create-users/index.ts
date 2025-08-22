@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
 import { Resend } from "npm:resend@2.0.0";
@@ -98,6 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
             username: userData.email.split('@')[0],
             display_name: userData.fullName,
             email: userData.email,
+            must_change_password: true, // Force password change on first login
             full_name: userData.profileData.full_name,
             gender: userData.profileData.gender,
             marital_status: userData.profileData.marital_status,
@@ -117,6 +119,8 @@ const handler = async (req: Request): Promise<Response> => {
             study_level: userData.profileData.study_level,
             study_start_date: userData.profileData.study_start_date,
             study_end_date: userData.profileData.study_end_date,
+            study_year: userData.profileData.study_year,
+            ppmk_batch: userData.profileData.ppmk_batch,
             sponsorship: userData.profileData.sponsorship,
             sponsorship_address: userData.profileData.sponsorship_address,
             sponsorship_phone_number: userData.profileData.sponsorship_phone_number,

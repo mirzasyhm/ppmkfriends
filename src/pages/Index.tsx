@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthCard } from "@/components/AuthCard";
+import heroImage from "@/assets/hero-brutalist.jpg";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -17,9 +18,9 @@ const Index = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // If user is authenticated, redirect to feed
+        // If user is authenticated, check if password change is required
         if (session?.user) {
-          navigate('/feed');
+          checkPasswordChangeRequired(session.user.id);
         }
         setLoading(false);
       }
@@ -30,9 +31,9 @@ const Index = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // If user is authenticated, redirect to feed
+      // If user is authenticated, check if password change is required
       if (session?.user) {
-        navigate('/feed');
+        checkPasswordChangeRequired(session.user.id);
       } else {
         setLoading(false);
       }
@@ -40,6 +41,32 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const checkPasswordChangeRequired = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('must_change_password')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking password change requirement:', error);
+        // If error, assume no password change needed and proceed to feed
+        navigate('/feed');
+        return;
+      }
+
+      if (profile?.must_change_password) {
+        navigate('/change-password');
+      } else {
+        navigate('/feed');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      navigate('/feed');
+    }
+  };
 
   const handleAuthSuccess = () => {
     // Navigation will be handled by auth state change
@@ -58,21 +85,24 @@ const Index = () => {
 
   // Show landing/auth page for unauthenticated users
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated background elements */}
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <img 
+          src={heroImage} 
+          alt="PPMKFriends Hero" 
+          className="w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-primary opacity-10"></div>
       </div>
       
       {/* Content */}
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 uppercase tracking-wider drop-shadow-lg">
+          <h1 className="text-4xl font-bold text-primary mb-4 uppercase tracking-wider">
             PPMKFriends
           </h1>
-          <p className="text-xl text-white/90 font-bold uppercase drop-shadow-md">
+          <p className="text-xl text-foreground font-bold uppercase">
             Connect with friends and share your moments
           </p>
         </div>
